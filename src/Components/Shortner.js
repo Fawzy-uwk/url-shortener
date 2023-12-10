@@ -65,27 +65,28 @@ function Shortner() {
   const handleShortenUrl = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/v1/shorten", {
+      const response = await fetch("https://api.rebrandly.com/v1/links", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "apikey": "ac419db45fad46aea82482397e8e2f4d", // Replace with your Rebrandly API key
         },
-        body: JSON.stringify({ url: originalUrl }),
+        body: JSON.stringify({ destination: originalUrl }),
       });
-
+  
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error("Failed to shorten URL");
       }
-
+  
       const data = await response.json();
-      const newShortenedUrl = data.result_url;
-
+      const newShortenedUrl = data.shortUrl;
+  
       const newLinkObject = {
         id: uuidv4(),
         original: originalUrl,
         shortened: newShortenedUrl,
       };
-
+  
       if (!shortenedLinks.some((link) => link.shortened === newShortenedUrl)) {
         setShortenedLinks([...shortenedLinks, newLinkObject]);
         setOriginalUrl("");
@@ -93,10 +94,11 @@ function Shortner() {
         setError("This shortened link already exists in the list.");
       }
     } catch (error) {
-      setError("Unknown Error Happened 😢 ");
+      setError("Unknown Error Happened 😢");
       console.error(error);
     }
   };
+  
 
   const getStoredShortenedLinks = () => {
     const storedShortenedLinks = sessionStorage.getItem("shortenedLinks");
