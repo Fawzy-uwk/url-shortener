@@ -2,7 +2,6 @@ import styled from "styled-components";
 import Button from "../UI/Button";
 import shorten from "../Assets/bg-shorten-desktop.svg";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 const Container = styled.div`
   width: 100%;
@@ -66,28 +65,36 @@ function Shortner() {
   const handleShortenUrl = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/v1/shorten", {
-        url: originalUrl,
+      const response = await fetch("/api/v1/shorten", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: originalUrl }),
       });
 
-      const newShortenedUrl = response.data.result_url;
-      // Create a new object with original and shortened URLs
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      const newShortenedUrl = data.result_url;
+
       const newLinkObject = {
-        id: uuidv4(), // Generate a unique ID,
+        id: uuidv4(),
         original: originalUrl,
         shortened: newShortenedUrl,
       };
 
-      // Check if the shortened link already exists in the array
       if (!shortenedLinks.some((link) => link.shortened === newShortenedUrl)) {
         setShortenedLinks([...shortenedLinks, newLinkObject]);
-        setOriginalUrl(""); // Clear the original URL input field
+        setOriginalUrl("");
       } else {
         setError("This shortened link already exists in the list.");
       }
     } catch (error) {
-      if (error) setError("Please insert a valid link");
-      console.log(error);
+      setError("Please insert a valid link");
+      console.error(error);
     }
   };
 
@@ -124,7 +131,6 @@ function Shortner() {
         .catch((error) => {
           console.error("Error copying to clipboard:", error);
         });
-        
     } else {
       console.error("Link with the specified ID not found");
     }
@@ -180,11 +186,13 @@ function Shortner() {
                 <Button
                   className="rounded-md w-full sm:w-[8rem]"
                   style={
-                    copied===link.id ? { backgroundColor: "hsl(257, 27%, 26%)" } : {}
+                    copied === link.id
+                      ? { backgroundColor: "hsl(257, 27%, 26%)" }
+                      : {}
                   }
-                  onClick={()=>handleCopyToClipboard(link.id)}
+                  onClick={() => handleCopyToClipboard(link.id)}
                 >
-                  {copied===link.id ? "Copied!" : "Copy Link!"}
+                  {copied === link.id ? "Copied!" : "Copy Link!"}
                 </Button>
               </div>
             </LI>
