@@ -93,7 +93,7 @@ function Shortner() {
         setError("This shortened link already exists in the list.");
       }
     } catch (error) {
-      setError("Please insert a valid link");
+      setError("Unknown Error Happened 😢 ");
       console.error(error);
     }
   };
